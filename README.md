@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Automated Regression Test Framework (Java + Spring Boot)
 
 ## Milestone 1 Status
