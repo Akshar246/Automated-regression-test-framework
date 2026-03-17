@@ -1,7 +1,7 @@
 # Architecture Overview - Milestone 1
 
 **Project:** Automated Regression Test Suite Framework  
-**Author:** Akshar Chanchlani
+**Author:** Akshar Chanchlani   
 **Milestone:** 1 (Foundation & Design Phase)  
 **Date:** 26-02-2026
 

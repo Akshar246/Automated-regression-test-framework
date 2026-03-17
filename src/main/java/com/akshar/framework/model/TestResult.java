@@ -1,7 +1,6 @@
 package com.akshar.framework.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "test_results")
@@ -11,42 +10,77 @@ public class TestResult {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // belongs to which run
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "run_id", nullable = false)
-    private TestRun run;
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String actualResult;
 
-    // which test case produced this result
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "test_case_id", nullable = false)
-    private TestCase testCase;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TestStatus status;
-
-    private LocalDateTime startedAt;
-    private LocalDateTime finishedAt;
-
-    @Column(length = 2000)
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String errorMessage;
 
     private String screenshotPath;
 
-    // getters/setters
-    public Long getId() { return id; }
-    public TestRun getRun() { return run; }
-    public void setRun(TestRun run) { this.run = run; }
-    public TestCase getTestCase() { return testCase; }
-    public void setTestCase(TestCase testCase) { this.testCase = testCase; }
-    public TestStatus getStatus() { return status; }
-    public void setStatus(TestStatus status) { this.status = status; }
-    public LocalDateTime getStartedAt() { return startedAt; }
-    public void setStartedAt(LocalDateTime startedAt) { this.startedAt = startedAt; }
-    public LocalDateTime getFinishedAt() { return finishedAt; }
-    public void setFinishedAt(LocalDateTime finishedAt) { this.finishedAt = finishedAt; }
-    public String getErrorMessage() { return errorMessage; }
-    public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
-    public String getScreenshotPath() { return screenshotPath; }
-    public void setScreenshotPath(String screenshotPath) { this.screenshotPath = screenshotPath; }
+    private Long durationInMs;
+
+    @Enumerated(EnumType.STRING)
+    private TestStatus status;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "test_run_id", nullable = false)
+    private TestRun testRun;
+
+    public TestResult() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getActualResult() {
+        return actualResult;
+    }
+
+    public void setActualResult(String actualResult) {
+        this.actualResult = actualResult;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public String getScreenshotPath() {
+        return screenshotPath;
+    }
+
+    public void setScreenshotPath(String screenshotPath) {
+        this.screenshotPath = screenshotPath;
+    }
+
+    public Long getDurationInMs() {
+        return durationInMs;
+    }
+
+    public void setDurationInMs(Long durationInMs) {
+        this.durationInMs = durationInMs;
+    }
+
+    public TestStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TestStatus status) {
+        this.status = status;
+    }
+
+    public TestRun getTestRun() {
+        return testRun;
+    }
+
+    public void setTestRun(TestRun testRun) {
+        this.testRun = testRun;
+    }
 }

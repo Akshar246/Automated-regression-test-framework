@@ -1,9 +1,8 @@
 package com.akshar.framework.model;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "test_runs")
@@ -13,32 +12,52 @@ public class TestRun {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // which suite was executed
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "suite_id", nullable = false)
-    private TestSuite suite;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TestStatus status = TestStatus.QUEUED;
+    private TestStatus status;
 
-    @Column(nullable = false)
-    private LocalDateTime startedAt = LocalDateTime.now();
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "test_case_id", nullable = false)
+    private TestCase testCase;
 
-    private LocalDateTime finishedAt;
+    public TestRun() {
+    }
 
-    @OneToMany(mappedBy = "run", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TestResult> results = new ArrayList<>();
+    public Long getId() {
+        return id;
+    }
 
-    // getters/setters
-    public Long getId() { return id; }
-    public TestSuite getSuite() { return suite; }
-    public void setSuite(TestSuite suite) { this.suite = suite; }
-    public TestStatus getStatus() { return status; }
-    public void setStatus(TestStatus status) { this.status = status; }
-    public LocalDateTime getStartedAt() { return startedAt; }
-    public LocalDateTime getFinishedAt() { return finishedAt; }
-    public void setFinishedAt(LocalDateTime finishedAt) { this.finishedAt = finishedAt; }
-    public List<TestResult> getResults() { return results; }
-    public void setResults(List<TestResult> results) { this.results = results; }
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public TestStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TestStatus status) {
+        this.status = status;
+    }
+
+    public TestCase getTestCase() {
+        return testCase;
+    }
+
+    public void setTestCase(TestCase testCase) {
+        this.testCase = testCase;
+    }
 }
