@@ -18,22 +18,29 @@ public class SeleniumExecutor implements TestExecutor {
         TestResult result = new TestResult();
         result.setTestRun(testRun);
 
+        WebDriver driver = null;
+
         try {
             if (testCase.getUiTargetUrl() == null || testCase.getUiTargetUrl().isBlank()) {
                 throw new IllegalArgumentException("UI target URL is missing for test case: " + testCase.getTestName());
             }
 
             DriverFactory.initDriver();
-            WebDriver driver = DriverFactory.getDriver();
+            driver = DriverFactory.getDriver();
             driver.get(testCase.getUiTargetUrl());
 
             String actualTitle = driver.getTitle();
-            Thread.sleep(3000);
             String expectedTitle = testCase.getExpectedPageTitle();
 
-            if (expectedTitle != null && expectedTitle.equals(actualTitle)) {
+            if (expectedTitle == null || expectedTitle.isBlank()) {
+                result.setStatus(TestStatus.FAIL);
+                result.setActualResult("UI validation failed. Actual title: " + actualTitle);
+                result.setErrorMessage("Expected page title is missing for test case: " + testCase.getTestName());
+                result.setScreenshotPath(ScreenshotUtil.captureScreenshot(driver, testCase.getTestName()));
+            } else if (expectedTitle.equals(actualTitle)) {
                 result.setStatus(TestStatus.PASS);
                 result.setActualResult("UI validation passed. Page title matched: " + actualTitle);
+                result.setScreenshotPath(ScreenshotUtil.captureScreenshot(driver, testCase.getTestName()));
             } else {
                 result.setStatus(TestStatus.FAIL);
                 result.setActualResult("UI validation failed. Actual title: " + actualTitle);
@@ -43,8 +50,13 @@ public class SeleniumExecutor implements TestExecutor {
 
         } catch (Exception ex) {
             result.setStatus(TestStatus.FAIL);
+            result.setActualResult("UI execution failed.");
             result.setErrorMessage(ex.getMessage());
-            WebDriver driver = DriverFactory.getDriver();
+
+            if (driver == null) {
+                driver = DriverFactory.getDriver();
+            }
+
             if (driver != null) {
                 result.setScreenshotPath(ScreenshotUtil.captureScreenshot(driver, testCase.getTestName()));
             }
