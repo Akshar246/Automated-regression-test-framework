@@ -38,6 +38,9 @@ public class TestCase {
     @Column(columnDefinition = "TEXT")
     private String expectedResponseText;
 
+    @Column(name = "expected_status_code")
+    private Integer expectedStatusCode;
+
     private String uiTargetUrl;
     private String expectedPageTitle;
 
@@ -155,6 +158,14 @@ public class TestCase {
 
     public void setExpectedResponseText(String expectedResponseText) {
         this.expectedResponseText = expectedResponseText;
+    }
+
+    public Integer getExpectedStatusCode() {
+        return expectedStatusCode;
+    }
+
+    public void setExpectedStatusCode(Integer expectedStatusCode) {
+        this.expectedStatusCode = expectedStatusCode;
     }
 
     public String getUiTargetUrl() {

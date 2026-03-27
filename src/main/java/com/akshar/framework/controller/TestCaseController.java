@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/tests")
@@ -58,5 +59,10 @@ public class TestCaseController {
     @PostMapping("/run/{id}")
     public ResponseEntity<TestResult> executeTestCase(@PathVariable Long id) {
         return ResponseEntity.ok(testCaseExecutionService.executeTestCase(id));
+    }
+
+    @PostMapping("/suite/run/{suiteId}")
+    public ResponseEntity<Map<String, Object>> executeTestSuite(@PathVariable Long suiteId) {
+        return ResponseEntity.ok(testCaseExecutionService.executeTestSuite(suiteId));
     }
 }

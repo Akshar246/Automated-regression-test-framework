@@ -12,6 +12,9 @@ import com.akshar.framework.repository.TestRunRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class TestCaseExecutionService {
@@ -54,13 +57,13 @@ public class TestCaseExecutionService {
             result = testExecutionRouter.execute(testCase, testRun);
             testRun.setEndTime(LocalDateTime.now());
             testRun.setStatus(result.getStatus());
-
             testCase.setStatus(result.getStatus());
 
         } catch (Exception ex) {
             result = new TestResult();
             result.setTestRun(testRun);
             result.setStatus(TestStatus.FAIL);
+            result.setActualResult("Test execution failed");
             result.setErrorMessage(ex.getMessage());
             result.setDurationInMs(0L);
 
@@ -73,5 +76,39 @@ public class TestCaseExecutionService {
         testCaseRepository.save(testCase);
 
         return testResultRepository.save(result);
+    }
+
+    // Gets all test cases in one suits
+    public Map<String, Object> executeTestSuite(Long suiteId) {
+        List<TestCase> testCases = testCaseRepository.findByTestSuiteId(suiteId);
+
+        if (testCases.isEmpty()) {
+            throw new ResourceNotFoundException("No test cases found for suite id: " + suiteId);
+        }
+
+        int passed = 0;
+        int failed = 0;
+
+        for (TestCase testCase : testCases) {
+            if (!Boolean.TRUE.equals(testCase.getActive())) {
+                continue;
+            }
+
+            TestResult result = executeTestCase(testCase.getId());
+
+            if (result.getStatus() == TestStatus.PASS) {
+                passed++;
+            } else {
+                failed++;
+            }
+        }
+
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("suiteId", suiteId);
+        summary.put("total", testCases.size());
+        summary.put("passed", passed);
+        summary.put("failed", failed);
+
+        return summary;
     }
 }

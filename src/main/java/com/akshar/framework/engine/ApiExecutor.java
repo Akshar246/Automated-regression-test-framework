@@ -26,9 +26,11 @@ public class ApiExecutor implements TestExecutor {
             if (endpoint == null || endpoint.isBlank()) {
                 throw new IllegalArgumentException("API endpoint is missing");
             }
+
             if (endpoint.contains("{") || endpoint.contains("}")) {
                 throw new IllegalArgumentException("API endpoint contains unresolved path placeholders. Use a fully resolved URL.");
             }
+
             validateAbsoluteHttpUrl(endpoint);
 
             String method = testCase.getHttpMethod() == null
@@ -36,6 +38,7 @@ public class ApiExecutor implements TestExecutor {
                     : testCase.getHttpMethod().trim().toUpperCase();
 
             String payload = testCase.getRequestPayload();
+
             HttpResponse<String> response;
             switch (method) {
                 case "GET":
@@ -49,26 +52,28 @@ public class ApiExecutor implements TestExecutor {
                     throw new IllegalArgumentException("Unsupported HTTP method: " + method);
             }
 
+            int statusCode = response.statusCode();
             String responseBody = response.body();
-            result.setActualResult(responseBody);
+            Integer expectedStatus = testCase.getExpectedStatusCode();
+            String expectedText = testCase.getExpectedResponseText();
 
-            String expected = testCase.getExpectedResponseText();
-
-            if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                if (expected == null || expected.isBlank() || responseBody.contains(expected)) {
-                    result.setStatus(TestStatus.PASS);
-                } else {
-                    result.setStatus(TestStatus.FAIL);
-                    result.setErrorMessage("Expected text not found");
-                }
-            } else {
+            if (expectedStatus != null && statusCode != expectedStatus) {
                 result.setStatus(TestStatus.FAIL);
-                result.setErrorMessage("Status code: " + response.statusCode());
+                result.setActualResult("API validation failed");
+                result.setErrorMessage("Expected status " + expectedStatus + " but got: " + statusCode);
+            } else if (expectedText != null && !expectedText.isBlank() && !responseBody.contains(expectedText)) {
+                result.setStatus(TestStatus.FAIL);
+                result.setActualResult("API validation failed");
+                result.setErrorMessage("Expected text not found in response. Expected: " + expectedText);
+            } else {
+                result.setStatus(TestStatus.PASS);
+                result.setActualResult("API validation passed. Status: " + statusCode);
+                result.setErrorMessage(null);
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
             result.setStatus(TestStatus.FAIL);
+            result.setActualResult("API execution failed");
             String message = e.getMessage() == null ? "Unexpected API execution error" : e.getMessage();
             result.setErrorMessage(e.getClass().getSimpleName() + ": " + message);
         } finally {
@@ -85,8 +90,9 @@ public class ApiExecutor implements TestExecutor {
             String host = uri.getHost();
 
             if (scheme == null || host == null || host.isBlank()) {
-                throw new IllegalArgumentException("API endpoint must be an absolute URL (e.g. https://api.example.com/path).");
+                throw new IllegalArgumentException("API endpoint must be an absolute URL (example: https://api.example.com/path).");
             }
+
             if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
                 throw new IllegalArgumentException("API endpoint URL scheme must be http or https.");
             }
@@ -97,6 +103,7 @@ public class ApiExecutor implements TestExecutor {
 
     private HttpResponse<String> executeHttpRequest(String method, String endpoint, String payload) throws Exception {
         HttpClient httpClient = HttpClient.newHttpClient();
+
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
                 .header("Content-Type", "application/json");
