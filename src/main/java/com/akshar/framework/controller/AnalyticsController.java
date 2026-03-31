@@ -35,4 +35,8 @@ public class AnalyticsController {
     public ResponseEntity<List<Map<String, Object>>> getExecutionHistory() {
         return ResponseEntity.ok(analyticsService.getExecutionHistory());
     }
+    @GetMapping("/performance")
+    public ResponseEntity<Map<String, Object>> getPerformanceMetrics() {
+        return ResponseEntity.ok(analyticsService.getPerformanceMetrics());
+    }
 }

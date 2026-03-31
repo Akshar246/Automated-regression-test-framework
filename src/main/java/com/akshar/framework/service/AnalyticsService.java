@@ -99,4 +99,17 @@ public class AnalyticsService {
 
         return history;
     }
+
+    public Map<String, Object> getPerformanceMetrics() {
+        Double average = testResultRepository.findAverageExecutionTime();
+        Long fastest = testResultRepository.findFastestExecutionTime();
+        Long slowest = testResultRepository.findSlowestExecutionTime();
+
+        Map<String, Object> performance = new HashMap<>();
+        performance.put("averageExecutionTime", average == null ? 0.0 : Math.round(average * 100.0) / 100.0);
+        performance.put("fastestExecutionTime", fastest == null ? 0 : fastest);
+        performance.put("slowestExecutionTime", slowest == null ? 0 : slowest);
+
+        return performance;
+    }
 }
