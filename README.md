@@ -1,193 +1,208 @@
-# Automated Regression Test Framework
+## Automated Regression Test Framework
 
-A database-driven automation framework built using Java and Spring Boot that supports both API and UI test execution with centralized result tracking and reporting.
+A scalable, database-driven automation framework designed to execute API and UI tests with parallel processing, failure diagnostics, and built-in analytics.
+
+Designed to simulate real-world automation systems used in CI/CD environments.
 
 ---
 
 ## Overview
 
-This project is designed to simulate a real-world test automation framework where test cases are managed in a database and executed dynamically. The framework supports both API and UI testing, enabling flexible and scalable test execution without hardcoding test logic.
-
-Instead of executing tests individually, the framework introduces **test suite execution**, allowing multiple test cases to be triggered in a single run, similar to how enterprise automation pipelines operate.
+This project implements a unified test execution system where test cases are managed through a database and executed via a modular engine. It supports both API and UI testing, enabling efficient regression testing while providing actionable insights into test performance and reliability.
 
 ---
 
-## Key Features
+## Key Highlights
 
-* API test execution with status code and response validation
-* UI test execution using Selenium WebDriver
-* Automatic screenshot capture on UI test failure
-* Database-driven test management (TestCase, TestRun, TestResult)
-* Test suite execution (run multiple test cases together)
-* Execution summary with pass/fail reporting
-* Clean separation of execution logic using routing pattern
-* Centralized error handling and result persistence
+- Built a database-driven automation framework instead of script-based testing  
+- Implemented parallel execution using multithreading for faster test runs  
+- Designed a modular execution engine supporting both API and UI testing  
+- Added analytics layer for performance tracking and failure insights  
 
 ---
 
-## Tech Stack
+## What This System Solves
 
-* Java 17
-* Spring Boot
-* Spring Data JPA (Hibernate)
-* MySQL
-* Selenium WebDriver
-* Maven
-
----
-
-## How It Works
-
-1. Test cases are created and stored in the database
-2. Each test case defines:
-
-   * API endpoint or UI URL
-   * expected validations
-3. The execution engine dynamically routes the test:
-
-   * API → HttpClient
-   * UI → Selenium
-4. Results are stored in:
-
-   * `test_runs`
-   * `test_results`
-5. Test suites allow grouped execution of multiple test cases
+- Eliminates repetitive manual testing  
+- Enables running multiple test cases together using suites  
+- Reduces execution time through parallel processing  
+- Provides insights into failures and performance  
+- Centralizes test execution and reporting  
 
 ---
 
-## Running the Application
+## What This System Does
 
-### Prerequisites
+### Test Execution
+- Execute individual test cases via API  
+- Execute complete test suites  
+- Parallel execution using multithreading (ExecutorService)  
 
-* Java 17
-* Maven
-* MySQL running locally
+### API Testing
+- Supports HTTP methods (GET, POST, PUT, DELETE, PATCH)  
+- Status code validation  
+- Response content validation  
 
-### Setup
+### UI Testing
+- Selenium WebDriver integration  
+- Page title validation  
+- Automatic screenshot capture on failure  
 
-1. Create database:
-
-```sql
-CREATE DATABASE test_framework;
-```
-
-2. Configure database in `application.properties`
-
-3. Run the application:
-
-```bash
-mvn spring-boot:run
-```
+### Reporting and Analytics
+- Overall execution summary  
+- Suite-level performance metrics  
+- Identification of frequently failing tests  
+- Execution history tracking  
+- Performance metrics (average, fastest, slowest execution time)  
 
 ---
 
-## API Endpoints
+## Architecture
 
-### Create Test Case
+Controller → Service → Execution Engine → Database
 
-```
-POST /tests
-```
+- Controller: Exposes REST endpoints  
+- Service Layer: Handles business logic  
+- Execution Engine: Routes execution to API or UI handlers  
+- Database: Stores test cases, runs, and results  
 
-### Run Single Test Case
+---
 
-```
+## Technology Stack
+
+- Java 17  
+- Spring Boot  
+- MySQL  
+- Selenium WebDriver  
+- Maven  
+
+---
+
+## Core APIs
+
+### Test Execution
+
+Run a single test case:
 POST /tests/run/{id}
-```
 
-### Run Test Suite
-
-```
+Run a test suite (parallel execution):
 POST /tests/suite/run/{suiteId}
-```
 
 ---
 
-## Sample Test Case (API)
+### Analytics
 
-```json
+GET /analytics/summary  
+GET /analytics/suite/{suiteId}  
+GET /analytics/top-failures  
+GET /analytics/history  
+GET /analytics/performance  
+
+---
+
+## Data Model
+
+- TestCase – Defines API/UI test configuration  
+- TestRun – Tracks each execution instance  
+- TestResult – Stores execution outcome, duration, and errors  
+
+---
+
+## Execution Flow
+
+1. Test cases are created and stored in the database  
+2. Execution is triggered via API  
+3. Engine routes execution to API or UI executor  
+4. Results are stored in the database  
+5. Analytics APIs provide insights into execution trends  
+
+---
+
+## Sample Output
+
+### Suite Execution Result
+
 {
-  "testName": "Users API Test",
-  "testType": "API",
-  "endpoint": "https://jsonplaceholder.typicode.com/users",
-  "httpMethod": "GET",
-  "expectedStatusCode": 200,
-  "expectedResponseText": "Leanne Graham"
+  "suiteId": 1,
+  "total": 4,
+  "executionMode": "PARALLEL",
+  "passed": 2,
+  "failed": 2
 }
-```
 
----
+### Analytics Summary
 
-## Sample Test Case (UI)
-
-```json
 {
-  "testName": "UI Title Validation",
-  "testType": "UI",
-  "uiTargetUrl": "https://example.com",
-  "expectedPageTitle": "Example Domain"
+  "totalRuns": 4,
+  "passed": 2,
+  "failed": 2,
+  "passPercentage": 50.0
 }
-```
 
 ---
 
-## Project Structure
+## Demo Screenshots
 
-```
-engine/        → Execution logic (API + UI)
-service/       → Business logic
-repository/    → Database access
-model/         → Entities
-controller/    → REST APIs
-utils/         → Helpers (Screenshot, JSON, Date)
-config/        → Driver and framework configuration
-```
+### 1. Suite Execution (Parallel Run)
+Suite Execution <img width="1428" height="848" alt="Suite-run" src="https://github.com/user-attachments/assets/32cf91ea-cec8-477a-83a6-f2964ce6ea27" />
+
+
+
+### 2. UI Failure with Screenshot Capture
+UI Failure <img width="3024" height="1476" alt="UI-Failure" src="https://github.com/user-attachments/assets/82d3e52b-6840-46ba-95dc-5d5abbc041c9" />
+
+
+### 3. Analytics Summary API Response
+Analytics Summary <img width="1434" height="848" alt="Analytics-summary" src="https://github.com/user-attachments/assets/81f82a7e-120e-496e-91c0-2c5912895b45" />
+
 
 ---
 
-## Milestone Progress
+## How to Run
 
-### Milestone 1
+1. Clone the repository  
+git clone (https://github.com/Akshar246/Automated-regression-test-framework.git)
 
-* Project setup and database configuration
-* Entity modeling and architecture design
+2. Configure MySQL database  
 
-### Milestone 2
+3. Run the application  
+mvn spring-boot:run  
 
-* API execution engine
-* Result tracking and persistence
+4. Use APIs via Postman:
+- POST /tests/run/{id}  
+- POST /tests/suite/run/{suiteId}  
+- GET /analytics/summary  
 
-### Milestone 3
+---
 
-* UI test execution with Selenium
-* Screenshot capture on failure
-* Test suite execution
-* Execution reporting
+## Real-World Relevance
+
+This framework simulates real automation systems used in CI/CD pipelines by:
+- executing regression suites in parallel  
+- tracking failures and performance metrics  
+- providing analytics for decision-making  
 
 ---
 
 ## Why This Project Stands Out
 
-This framework is not limited to running tests—it focuses on **scalability and real-world design principles**:
-
-* Decoupled execution using routing pattern
-* Database-driven test configuration
-* Supports both API and UI testing in a single framework
-* Introduces suite-level execution similar to CI/CD pipelines
+- Database-driven test orchestration instead of static scripts  
+- Parallel execution for faster regression cycles  
+- Integrated analytics layer (execution + insights)  
+- Clean layered architecture for scalability  
+- Supports both API and UI testing in a unified system  
 
 ---
 
-## Future Enhancements
+## Potential Enhancements
 
-* Parallel test execution
-* Scheduled test runs
-* Web-based dashboard for reporting
-* CI/CD integration (GitHub Actions / Jenkins)
+- Dashboard for analytics visualization  
+- CI/CD integration  
+- Scheduled test execution  
+- Exportable reports (PDF/CSV)  
 
 ---
 
 ## Author
-
-Akshar
-Automated Testing Framework Project
-Infosys Virtual Internship (6.0)
+Akshar,
+Developed as part of an automation framework project focused on building a production-style testing system.
