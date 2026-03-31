@@ -12,9 +12,11 @@ import com.akshar.framework.repository.TestRunRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
 
 @Service
 public class TestCaseExecutionService {
@@ -78,7 +80,6 @@ public class TestCaseExecutionService {
         return testResultRepository.save(result);
     }
 
-    // Gets all test cases in one suits
     public Map<String, Object> executeTestSuite(Long suiteId) {
         List<TestCase> testCases = testCaseRepository.findByTestSuiteId(suiteId);
 
@@ -86,28 +87,82 @@ public class TestCaseExecutionService {
             throw new ResourceNotFoundException("No test cases found for suite id: " + suiteId);
         }
 
+        List<TestCase> activeTests = testCases.stream()
+                .filter(testCase -> Boolean.TRUE.equals(testCase.getActive()))
+                .toList();
+
+        if (activeTests.isEmpty()) {
+            throw new ResourceNotFoundException("No active test cases found for suite id: " + suiteId);
+        }
+
+        int poolSize = Math.min(activeTests.size(), 5);
+        ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
+
+        List<Future<TestResult>> futures = new ArrayList<>();
+        List<TestCase> submittedTests = new ArrayList<>();
+
+        for (TestCase testCase : activeTests) {
+            submittedTests.add(testCase);
+            futures.add(executorService.submit(() -> executeTestCase(testCase.getId())));
+        }
+
         int passed = 0;
         int failed = 0;
+        List<Map<String, Object>> results = new ArrayList<>();
 
-        for (TestCase testCase : testCases) {
-            if (!Boolean.TRUE.equals(testCase.getActive())) {
-                continue;
-            }
+        for (int i = 0; i < futures.size(); i++) {
+            TestCase testCase = submittedTests.get(i);
 
-            TestResult result = executeTestCase(testCase.getId());
+            try {
+                TestResult result = futures.get(i).get();
 
-            if (result.getStatus() == TestStatus.PASS) {
-                passed++;
-            } else {
+                Map<String, Object> testResultMap = new HashMap<>();
+                testResultMap.put("testName", testCase.getTestName());
+                testResultMap.put("status", result.getStatus().name());
+                testResultMap.put("duration", result.getDurationInMs());
+                testResultMap.put("error", result.getErrorMessage());
+
+                results.add(testResultMap);
+
+                if (result.getStatus() == TestStatus.PASS) {
+                    passed++;
+                } else {
+                    failed++;
+                }
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+
+                Map<String, Object> testResultMap = new HashMap<>();
+                testResultMap.put("testName", testCase.getTestName());
+                testResultMap.put("status", TestStatus.FAIL.name());
+                testResultMap.put("duration", 0);
+                testResultMap.put("error", "Execution interrupted");
+
+                results.add(testResultMap);
+                failed++;
+
+            } catch (ExecutionException e) {
+                Map<String, Object> testResultMap = new HashMap<>();
+                testResultMap.put("testName", testCase.getTestName());
+                testResultMap.put("status", TestStatus.FAIL.name());
+                testResultMap.put("duration", 0);
+                testResultMap.put("error", e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
+
+                results.add(testResultMap);
                 failed++;
             }
         }
 
+        executorService.shutdown();
+
         Map<String, Object> summary = new HashMap<>();
         summary.put("suiteId", suiteId);
-        summary.put("total", testCases.size());
+        summary.put("total", activeTests.size());
         summary.put("passed", passed);
         summary.put("failed", failed);
+        summary.put("results", results);
+        summary.put("executionMode", "PARALLEL");
 
         return summary;
     }
